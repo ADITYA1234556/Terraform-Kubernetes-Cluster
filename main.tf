@@ -22,6 +22,11 @@ resource "aws_instance" "k8s_nodes" {
     Environment = "Development"
   }
 
+  metadata_options {
+    http_tokens = "required"  # Use IMDSv2 (set to "optional" if you want IMDSv1 support as well)
+    http_endpoint = "enabled" # Make sure the metadata service is accessible
+  }
+
   # Install Kubernetes via user_data
   user_data = file("script.sh")
 }
