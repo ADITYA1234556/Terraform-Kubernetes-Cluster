@@ -30,6 +30,13 @@ resource "aws_instance" "k8s_nodes" {
 
   # Install Kubernetes via user_data
   user_data = file("script.sh")
+
+  iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
+}
+
+resource "aws_iam_instance_profile" "ec2_instance_profile" {
+  name = "k8s-ec2-instance-profile"
+  role = aws_iam_role.ec2_role.name
 }
 
 # Output public IPs for SSH access
