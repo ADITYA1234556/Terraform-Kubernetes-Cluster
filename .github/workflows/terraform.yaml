@@ -23,10 +23,6 @@ jobs:
     terraform:
       name: "Apply code changes"
       runs-on: ubuntu-latest #this is a runner on ubuntu that provides a linux based shell
-      defaults:
-        run:
-          shell: bash
-          working-directory: ./terraform
 
       steps:
         - name: Checkout source code
