@@ -1,0 +1,75 @@
+name: "CICD IAC"
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - stage
+    paths:
+      - terraform/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - terraform/**
+
+env:
+  AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+  AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+  BUCKET_TF_STATE: ${{secrets.BUCKET_TF_STATE}}
+  AWS_REGION: eu-west-2
+
+jobs:
+    terraform:
+      name: "Apply code changes"
+      runs-on: ubuntu-latest #this is a runner on ubuntu that provides a linux based shell
+      defaults:
+        run:
+          shell: bash
+          working-directory: ./terraform
+
+      steps:
+        - name: Checkout source code
+          uses: actions/checkout@v4
+
+        - name: Install Terraform on the ubuntu runner to run our terraform scripts
+          uses: hashicorp/setup-terraform@v2
+
+        - name: Terraform init
+          id: init #id can be any name it will used to build dependencies
+          run: terraform init -backend-config="bucket=$BUCKET_TF_STATE"
+
+        - name: Terraform refresh
+          id: refresh
+          run: terraform refresh
+
+        - name: Terraform format
+          id: fmt
+          run: terraform fmt -check
+
+        - name: Terraform validate
+          id: validate
+          run: terraform validate
+
+        - name: Terraform plan
+          id: plan
+          run: terraform plan -no-color -input=false -out planfile
+          continue-on-error: true
+
+        - name: Terraform plan status #here we specify when to exit the code
+          if: steps.plan.outcome == 'failure'
+          run: exit 1
+
+        - name: Terraform apply the code
+          id: apply #apply only if there is a push event in main branch
+          #if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+          run: terraform apply -auto-approve -input=false -parallelism=1 planfile #we are using the planfile we got from the output
+          #in step with id plan
+
+        - name: Configure AWS credentials #setting up aws credentials so that we can get the kubeconfig file in the next step
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+            aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+            aws-region: ${{ env.AWS_REGION}}
+
