@@ -5,8 +5,8 @@ variable "region" {
 variable "ami_id" {
   type = map(string)
   default = {
-  ubuntu = "ami-03ceeb33c1e4abcd1"
-  linux  = "ami-0abb41dc69b6b6704"
+    ubuntu = "ami-03ceeb33c1e4abcd1"
+    linux  = "ami-0abb41dc69b6b6704"
   }
 }
 

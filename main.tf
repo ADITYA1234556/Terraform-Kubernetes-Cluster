@@ -1,8 +1,8 @@
 terraform {
   backend "s3" {
-    bucket         = "111-aditya-bucket"
-    key            = "terraform/terraform.tfstate"
-    region         = "eu-west-2"  # Replace with your desired AWS region
+    bucket = "111-aditya-bucket"
+    key    = "terraform/terraform.tfstate"
+    region = "eu-west-2" # Replace with your desired AWS region
   }
 }
 provider "aws" {
@@ -10,11 +10,11 @@ provider "aws" {
 }
 
 resource "aws_instance" "k8s_nodes" {
-  count         = var.instance_count
-  ami           = var.ami_id["ubuntu"]
-  instance_type = var.instance_type
-  key_name      = var.key_name
-  subnet_id     = var.subnet_id
+  count           = var.instance_count
+  ami             = var.ami_id["ubuntu"]
+  instance_type   = var.instance_type
+  key_name        = var.key_name
+  subnet_id       = var.subnet_id
   security_groups = [var.security_group_id]
 
   tags = {
