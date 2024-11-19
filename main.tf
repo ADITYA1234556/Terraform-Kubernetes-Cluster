@@ -23,8 +23,9 @@ resource "aws_instance" "k8s_nodes" {
   }
 
   metadata_options {
-    http_tokens = "required"  # Use IMDSv2 (set to "optional" if you want IMDSv1 support as well)
-    http_endpoint = "enabled" # Make sure the metadata service is accessible
+    http_tokens            = "required" # Use IMDSv2 (set to "optional" if you want IMDSv1 support as well)
+    http_endpoint          = "enabled"  # Make sure the metadata service is accessible
+    instance_metadata_tags = "enabled"
   }
 
   # Install Kubernetes via user_data
