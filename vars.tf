@@ -18,8 +18,9 @@ variable "key_name" {
   default = "ADITYANEWKEYITC"
 }
 
-variable "subnet_id" {
-  default = "subnet-01a8be27831a6da4e"
+variable "subnet_ids" {
+  type    = list(string)
+  default = ["subnet-01a8be27831a6da4e", "subnet-03a6d21428c5cb0e9", "subnet-0fda47b6bd01a3216"]
 }
 
 variable "security_group_id" {
