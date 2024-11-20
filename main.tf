@@ -1,7 +1,6 @@
 terraform {
   backend "s3" {
-    bucket = "11-aditya-bucket"
-#     bucket = "111-aditya-bucket"
+    bucket = "111-aditya-bucket"
     key    = "terraform/terraform.tfstate"
     region = "eu-west-2" # Replace with your desired AWS region
   }
