@@ -15,16 +15,19 @@ variable "instance_type" {
 }
 
 variable "key_name" {
-  default = "ADITYANEWKEYITC"
+  default = "PERSONALACCOUNT"
+#   default = "ADITYANEWKEYITC"
 }
 
 variable "subnet_ids" {
   type    = list(string)
-  default = ["subnet-01a8be27831a6da4e", "subnet-03a6d21428c5cb0e9", "subnet-0fda47b6bd01a3216"]
+  default = ["subnet-06d63f443b5cec3af", "subnet-07fde5cc5ffb01580", "subnet-01e9eb9a0384143dd"]
+#   default = ["subnet-01a8be27831a6da4e", "subnet-03a6d21428c5cb0e9", "subnet-0fda47b6bd01a3216"]
 }
 
 variable "security_group_id" {
-  default = "sg-00c8b561dc6b524c6"
+  default = "sg-027239d25e2c27e25"
+#   default = "sg-00c8b561dc6b524c6"
 }
 
 variable "instance_count" {
