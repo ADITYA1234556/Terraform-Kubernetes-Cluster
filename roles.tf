@@ -1,5 +1,5 @@
 resource "aws_iam_role" "ec2_role" {
-  name = "k8s-ec2-role"
+  name = "k8s-ec2-role-latest"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
