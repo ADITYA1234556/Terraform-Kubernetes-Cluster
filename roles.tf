@@ -35,9 +35,9 @@ resource "aws_iam_role_policy_attachment" "elastic_load_balancing_full_access" {
   policy_arn = "arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess"
 }
 
-resource "aws_iam_role_policy_attachment" "cloudwatch_full_access" {
+resource "aws_iam_role_policy_attachment" "AWSLoadBalancerControllerIAMPolicy" {
   role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+  policy_arn = "arn:aws:iam::430006376054:policy/AWSLoadBalancerControllerIAMPolicy""
 }
 
 resource "aws_iam_role_policy_attachment" "vpc_full_access" {
