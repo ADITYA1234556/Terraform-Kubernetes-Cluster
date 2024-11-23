@@ -62,23 +62,35 @@ jobs:
           run: |
             terraform apply -auto-approve -input=false -parallelism=1 planfile 
             #we are using the planfile we got from the output in step with id plan
-            # Safely fetch and parse public_ips output
-            # Capture the output of public IPs
-            public_ips=$(terraform output -json public_ips | jq -r '.[]')
-            
-            # Check if the output is empty or invalid
+            # Fetch the public_ips output as JSON
+            output_json=$(terraform output -json public_ips)
+          
+            # Debug output JSON for troubleshooting
+            echo "Terraform Output (public_ips): $output_json"
+          
+            # Check if the output is a valid JSON array using jq
+            if ! echo "$output_json" | jq empty; then
+              echo "Error: Invalid JSON format in terraform output. Exiting."
+              exit 1
+            fi
+          
+            # Parse the public IPs into an array using jq
+            public_ips=$(echo "$output_json" | jq -r '.[]')
+          
+            # Check if public_ips is empty
             if [[ -z "$public_ips" ]]; then
               echo "Error: No public IPs found. Exiting."
               exit 1
             fi
-        
-            # Extract the first and second IPs
+          
+            # Extract the first and second IPs from the list
             FIRST_IP=$(echo "$public_ips" | head -n1)
             SECOND_IP=$(echo "$public_ips" | tail -n1)
-        
+          
+            # Output the results to GitHub environment variables
             echo "FIRST_IP=$FIRST_IP" >> $GITHUB_ENV
             echo "SECOND_IP=$SECOND_IP" >> $GITHUB_ENV
-
+          
             echo "First IP: $FIRST_IP, Second IP: $SECOND_IP"
 
         - name: Configure AWS credentials #setting up aws credentials so that we can get the kubeconfig file in the next step
