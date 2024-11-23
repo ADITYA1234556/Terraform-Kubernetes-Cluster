@@ -14,6 +14,7 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
   BUCKET_TF_STATE: ${{secrets.BUCKET_TF_STATE}}
   AWS_REGION: eu-west-2
+  PEM_KEY: ${{secrets.PEM_KEY}}
 
 jobs:
     terraform:
@@ -58,10 +59,28 @@ jobs:
           run: terraform apply -auto-approve -input=false -parallelism=1 planfile #we are using the planfile we got from the output
           #in step with id plan
 
+        - name: Get EC2 Public IPs
+          id: ec2_ipaddress
+          run: echo "::set-output name=nodeaddress::$(terraform output -json public_ips | jq -r '.[]')"
+
         - name: Configure AWS credentials #setting up aws credentials so that we can get the kubeconfig file in the next step
           uses: aws-actions/configure-aws-credentials@v1
           with:
             aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
             aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
             aws-region: ${{ env.AWS_REGION}}
+
+        - name: Login to EC2 and run commands
+          env:
+            PEM_KEY: ${{ secrets.PEM_KEY }}
+            PUBLIC_IPS: ${{ steps.ec2_ipaddress.outputs.nodeaddress }}
+          run: |
+            echo "$PEM_KEY" > private.pem
+            chmod 600 private.pem
+            
+            for ip in $PUBLIC_IPS; do
+              echo "Running command on EC2 instance with IP: $ip"
+              ssh -i private.pem -o "StrictHostKeyChecking=no" ec2-user@$ip "sudo apt update -y"
+            done
+
 

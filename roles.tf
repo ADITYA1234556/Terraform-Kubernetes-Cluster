@@ -60,8 +60,8 @@ resource "aws_iam_role_policy_attachment" "eks_worker_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
 }
 
-resource "aws_iam_role_policy_attachment" "ec2_container_registry_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "AdministratorAccess" {
   role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
