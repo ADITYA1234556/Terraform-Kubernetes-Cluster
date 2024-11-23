@@ -15,7 +15,7 @@ resource "aws_instance" "k8s_nodes" {
   instance_type   = var.instance_type
   key_name        = var.key_name
   subnet_id       = element(var.subnet_ids, count.index % length(var.subnet_ids))
-  security_groups = [var.security_group_id]
+  vpc_security_group_ids = [var.security_group_id]
 
   tags = {
     Name        = "k8s-node-${count.index}"
@@ -29,7 +29,7 @@ resource "aws_instance" "k8s_nodes" {
   }
 
   lifecycle {
-    ignore_changes = [tags]
+    ignore_changes = [tags, security_groups, root_block_device, vpc_security_group_ids,]
   }
 
   # Install Kubernetes via user_data
