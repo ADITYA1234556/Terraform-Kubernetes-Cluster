@@ -28,7 +28,12 @@ resource "aws_instance" "k8s_nodes" {
     instance_metadata_tags = "enabled"
   }
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
   # Install Kubernetes via user_data
+#   user_data = file("script.sh")
   user_data = file("${path.module}/script.sh")
 #   user_data_hash = filemd5("${path.module}/script.sh")
 
