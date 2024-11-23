@@ -30,7 +30,7 @@ resource "aws_instance" "k8s_nodes" {
 
   # Install Kubernetes via user_data
   user_data = file("${path.module}/script.sh")
-  user_data_hash = filemd5("${path.module}/script.sh")
+#   user_data_hash = filemd5("${path.module}/script.sh")
 
   iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.name
 }
