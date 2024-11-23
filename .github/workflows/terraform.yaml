@@ -53,15 +53,30 @@ jobs:
           if: steps.plan.outcome == 'failure'
           run: exit 1
 
+        - name: Install jq
+          run: sudo apt-get install -y jq
+
         - name: Terraform apply the code
           id: apply #apply only if there is a push event in main branch
           #if: github.ref == 'refs/heads/master' && github.event_name == 'push'
           run: |
             terraform apply -auto-approve -input=false -parallelism=1 planfile 
             #we are using the planfile we got from the output in step with id plan
-            public_ips=$(terraform output -json public_ips | jq -r '.[]')
-            echo "FIRST_IP=$(echo $public_ips | head -n1)" >> $GITHUB_ENV
-            echo "SECOND_IP=$(echo $public_ips | tail -n1)" >> $GITHUB_ENV
+             # Safely fetch and parse public_ips output
+            public_ips=$(terraform output -json public_ips | jq -r '.[]' || echo "")
+            
+            # Exit if no IPs are found
+            if [ -z "$public_ips" ]; then
+              echo "Error: No public IPs found. Exiting."
+              exit 1
+            fi
+        
+            # Get first and second IPs
+            FIRST_IP=$(echo "$public_ips" | head -n1)
+            SECOND_IP=$(echo "$public_ips" | tail -n1)
+        
+            echo "FIRST_IP=${FIRST_IP}" >> $GITHUB_ENV
+            echo "SECOND_IP=${SECOND_IP}" >> $GITHUB_ENV
 
         - name: Configure AWS credentials #setting up aws credentials so that we can get the kubeconfig file in the next step
           uses: aws-actions/configure-aws-credentials@v1
