@@ -56,12 +56,12 @@ jobs:
         - name: Terraform apply the code
           id: apply #apply only if there is a push event in main branch
           #if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-          run: terraform apply -auto-approve -input=false -parallelism=1 planfile #we are using the planfile we got from the output
-          #in step with id plan
-
-        - name: Get EC2 Public IPs
-          id: ec2_ipaddress
-          run: echo "::set-output name=nodeaddress::$(terraform output -json public_ips | jq -r '.[]')"
+          run: |
+            terraform apply -auto-approve -input=false -parallelism=1 planfile 
+            #we are using the planfile we got from the output in step with id plan
+            public_ips=$(terraform output -json public_ips | jq -r '.[]')
+            echo "FIRST_IP=$(echo $public_ips | head -n1)" >> $GITHUB_ENV
+            echo "SECOND_IP=$(echo $public_ips | tail -n1)" >> $GITHUB_ENV
 
         - name: Configure AWS credentials #setting up aws credentials so that we can get the kubeconfig file in the next step
           uses: aws-actions/configure-aws-credentials@v1
@@ -70,17 +70,30 @@ jobs:
             aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
             aws-region: ${{ env.AWS_REGION}}
 
-        - name: Login to EC2 and run commands
+         # SSH into the first EC2 instance and initialize the Kubernetes cluster
+        - name: Initialize Kubernetes on Master Node
+          id: init_master
+          env:
+            PEM_KEY: ${{ secrets.PEM_KEY }} # Ensure PEM key is stored in GitHub Secrets
+            FIRST_IP: ${{ env.FIRST_IP }}
+          run: |
+            echo "${PEM_KEY}" > private.pem
+            chmod 600 private.pem
+            ssh -o StrictHostKeyChecking=no -i private.pem ubuntu@$FIRST_IP \
+              "sudo kubeadm init --pod-network-cidr=10.244.0.0/16" > init_output.txt
+            JOIN_COMMAND=$(grep -o 'kubeadm join.*' init_output.txt)
+            echo "JOIN_COMMAND=$JOIN_COMMAND" >> $GITHUB_ENV
+
+        # Step 5: SSH into the second EC2 instance and join the cluster
+        - name: Join Worker Node to Cluster
           env:
             PEM_KEY: ${{ secrets.PEM_KEY }}
-            PUBLIC_IPS: ${{ steps.ec2_ipaddress.outputs.nodeaddress }}
+            SECOND_IP: ${{ env.SECOND_IP }}
+            JOIN_COMMAND: ${{ env.JOIN_COMMAND }}
           run: |
-            echo "$PEM_KEY" > private.pem
+            echo "${PEM_KEY}" > private.pem
             chmod 600 private.pem
-            
-            for ip in $PUBLIC_IPS; do
-              echo "Running command on EC2 instance with IP: $ip"
-              ssh -i private.pem -o "StrictHostKeyChecking=no" ec2-user@$ip "sudo apt update -y"
-            done
+            ssh -o StrictHostKeyChecking=no -i private.pem ubuntu@$SECOND_IP \
+              "sudo $JOIN_COMMAND"
 
 
