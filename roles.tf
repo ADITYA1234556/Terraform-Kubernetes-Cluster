@@ -20,9 +20,9 @@ resource "aws_iam_role_policy_attachment" "ec2_full_access" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
 }
 
-resource "aws_iam_role_policy_attachment" "iam_full_access" {
+resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller" {
   role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/IAMFullAccess"
+  policy_arn = "arn:aws:iam::aws:policy/AWSLoadBalancerControllerPolicy"
 }
 
 resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
