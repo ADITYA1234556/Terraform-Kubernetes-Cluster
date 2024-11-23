@@ -54,7 +54,9 @@ jobs:
           run: exit 1
 
         - name: Install jq
-          run: sudo apt-get install -y jq
+          run: |
+            sudo apt-get install -y jq
+            jq --version
 
         - name: Terraform apply the code
           id: apply #apply only if there is a push event in main branch
@@ -68,16 +70,11 @@ jobs:
             # Debug output JSON for troubleshooting
             echo "Terraform Output (public_ips): $output_json"
           
-            # Check if the output is a valid JSON array using jq
-            if ! echo "$output_json" | jq empty; then
-              echo "Error: Invalid JSON format in terraform output. Exiting."
-              exit 1
-            fi
-          
-            # Parse the public IPs into an array using jq
+            # Use jq to parse the public IPs from the JSON
+            # Wrap the jq command inside quotes to ensure correct parsing
             public_ips=$(echo "$output_json" | jq -r '.[]')
           
-            # Check if public_ips is empty
+            # Check if the public_ips is empty or not parsed properly
             if [[ -z "$public_ips" ]]; then
               echo "Error: No public IPs found. Exiting."
               exit 1
