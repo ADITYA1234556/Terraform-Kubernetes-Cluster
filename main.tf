@@ -5,8 +5,23 @@ terraform {
     region = "eu-west-2" # Replace with your desired AWS region
   }
 }
+
+terraform {
+  required_providers {
+    localos = {
+      source  = "fireflycons/localos"
+      version = "0.1.2"
+    }
+  }
+}
+
 provider "aws" {
   region = var.region
+  default_tags {
+    tags = {
+      "tf:stackid" = "kubeadm-cluster"
+    }
+  }
 }
 
 resource "aws_instance" "k8s_nodes" {
@@ -45,7 +60,3 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
   role = aws_iam_role.ec2_role.name
 }
 
-# Output public IPs for SSH access
-output "public_ips" {
-  value = [for instance in aws_instance.k8s_nodes : instance.public_ip]
-}
